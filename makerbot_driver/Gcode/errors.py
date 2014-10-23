@@ -14,8 +14,8 @@ class GcodeError(ValueError):
             v = str(self.values[key])
             v = v.rstrip(
                 '\n')  # Line commands have carriage returns
-            returnStr += key + ': ' + v + '; '
-        returnStr = returnStr.rstrip('; ')  # Remove final semicolon
+            returnStr += key + ': ' + v + '\n'
+        returnStr = returnStr.rstrip('\n')  # Remove final semicolon
         return returnStr
 
 
@@ -108,6 +108,11 @@ class VectorLengthZeroError(GcodeError):
 class InvalidFeedrateError(GcodeError):
     """
     An InvalidFeedrateError is thrown when a feedrate <0 is given for a movement command
+    """
+
+class NoFeedrateSpecifiedError(GcodeError):
+    """
+    Raised when no feedrate is specified in the codes and the state machine has no feedrate set
     """
 
 

@@ -12,7 +12,8 @@ class ProgressProcessor(Processor):
         super(ProgressProcessor, self).__init__()
         self.command = re.compile('([A-Z]\d+(\.\d+)? )+')
 
-    def create_progress_msg(self, percent):
+    @staticmethod
+    def create_progress_msg(percent):
         progressmsg = "M73 P%s (progress (%s%%))\n" % (percent, percent)
         return progressmsg
 
@@ -24,12 +25,11 @@ class ProgressProcessor(Processor):
         for code in gcodes:
             count_current += 1
             output.append(code)
-            new_percent = self.get_percent(count_current, count_total)
+            new_percent = int(100.0 * count_current / count_total)
             if new_percent > current_percent:
                 progressmsg = self.create_progress_msg(new_percent)
                 with self._condition:
-                    if self._external_stop:
-                        raise makerbot_driver.ExternalStopError
+                    self.test_for_external_stop(prelocked=True)
                     output.append(progressmsg)
                 current_percent = new_percent
                 if callback is not None:

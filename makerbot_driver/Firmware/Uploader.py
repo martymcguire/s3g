@@ -32,7 +32,7 @@ def _check_output(*popenargs, **kwargs):
 class Uploader(object):
     """ Firmware Uploader is used to send firmware to a 3D printer."""
 
-    def __init__(self, source_url=None, dest_path=None, autoUpdate=True):
+    def __init__(self, source_url=None, dest_path=None, autoUpdate=True, path_to_eeprom=None, avrdude_exe=None, avrdude_conf_file=None):
         """Build an uploader.
         @param source_url: specify a url to fetch firmware metadata from. Can be a directory
         @param dest_path: path to use as the local file store location
@@ -45,8 +45,25 @@ class Uploader(object):
 
         self.run_subprocess = _check_output
         self.urlopen = urllib2.urlopen
+        self.path_to_eeprom = path_to_eeprom if path_to_eeprom else os.path.join(
+            os.path.abspath(os.path.dirname(__file__)),
+            '..',
+            'EEPROM',
+        )
+        self._avrdude_exe = avrdude_exe
+        self._avrdude_conf_file = avrdude_conf_file
         if autoUpdate:
             self.update()
+
+    def compatible_firmware(self, firmware_version, software_variant):
+        """
+        Determines if a firmware version is compatible with the current driver
+
+        @param str firmware_version: Firmware version to check
+        @return bool: True if firmware is compatible, false otherwise
+        """
+        map_name = makerbot_driver.EEPROM.eeprom_map_name % (firmware_version, software_variant)
+        return map_name in os.listdir(self.path_to_eeprom)
 
     def pathjoin(self, base, resource):
         """ joins URL or filename paths to find a resource relative to base"""
@@ -79,11 +96,11 @@ class Uploader(object):
         Assuming a product.json file has been pulled and loaded,
         explores that products.json file and wgets all machine json files.
         """
-        machines = self.products['ExtrusionPrinters']
+        machines = self.products['ExtrusionPrintersV2']
         for machine in machines:
-            f = self.products['ExtrusionPrinters'][machine]
+            f = self.products['ExtrusionPrintersV2'][machine]
             url = self.pathjoin(
-                self.source_url, self.products['ExtrusionPrinters'][machine])
+                self.source_url, self.products['ExtrusionPrintersV2'][machine])
             self.wget(url)
 
     def wget(self, url):
@@ -101,13 +118,17 @@ class Uploader(object):
         if os.path.isfile(url):
             if not url == local_path:
                 self._logger.info(
-                    '{"event":"copying_local_file", "file":%s}' % (url))
+                    '{"event":"copying_local_file", "file":%s}' % url)
                 import shutil
                 shutil.copy(url, local_path)
         else:
-            self._logger.info('{"event":"downloading_url", "url":%s}' % (url))
-            #Download the file
-            dl_file = self.urlopen(url)
+            self._logger.info('{"event":"downloading_url", "url":%s}' % url)
+            try:
+                #Download the file
+                dl_file = self.urlopen(url)
+            except urllib2.URLError as e:
+                # Means we have no internet connection
+                raise e
             #Write out the file
             with open(local_path, 'w') as f:
                 f.write(dl_file.read())
@@ -127,12 +148,12 @@ class Uploader(object):
         """
         path = os.path.join(
             self.dest_path,
-            self.products['ExtrusionPrinters'][machine],
+            self.products['ExtrusionPrintersV2'][machine],
         )
         path = os.path.normpath(path)
         return self.load_json_values(path)
 
-    def list_firmware_versions(self, machine):
+    def list_firmware_versions(self, machine, pid):
         """
         Given a machine name, returns all possible versions we can upload to
 
@@ -141,8 +162,8 @@ class Uploader(object):
         """
         values = self.get_firmware_values(machine)
         versions = []
-        for version in values['firmware']['versions']:
-            descriptor = values['firmware']['versions'][version][1]
+        for version in values['PID'][pid]['versions']:
+            descriptor = values['PID'][pid]['versions'][version][1]
             versions.append([version, descriptor])
         return versions
 
@@ -152,11 +173,14 @@ class Uploader(object):
 
         @return iterator machines: The machines we can upload firmware to
         """
-        return self.products['ExtrusionPrinters'].keys()
+        return self.products['ExtrusionPrintersV2'].keys()
 
-    def download_firmware(self, machine, version):
+        self.assertEqual(expected_profile, getattr(return_obj, 'profile'))
+        self.assertEqual(expected_parser, getattr(return_obj, 'gcodeparser'))
+
+    def download_firmware(self, machine, pid, version):
         values = self.get_firmware_values(machine)
-        values = values['firmware']
+        values = values['PID'][pid]
         try:
             hex_file = str(values['versions'][version][0])
         except KeyError:
@@ -165,7 +189,7 @@ class Uploader(object):
         hex_file_path = self.wget(hex_file_url)
         return hex_file_path
 
-    def parse_avrdude_command(self, port, machine, filename, local_avr=True):
+    def parse_avrdude_command(self, port, machine, pid, filename, local_avr=True):
         """
         Given a port, machine name, and firmware filename, parses out a command
         that invokes avrdude
@@ -176,20 +200,26 @@ class Uploader(object):
         @return str command: The command that invokes avrdude
         """
         values = self.get_firmware_values(machine)
-        values = values['firmware']
-        process = 'avrdude'
-        if platform.system() == "Windows":
-            process += ".exe"
-        if local_avr:
-            path = os.path.join(
+        values = values['PID'][pid]
+        if None is not self._avrdude_exe:
+            process = self._avrdude_exe
+        else:
+            process = 'avrdude'
+            if platform.system() == "Windows":
+                process += ".exe"
+            if local_avr:
+                path = os.path.join(
+                    os.path.abspath(os.path.dirname(__file__)),
+                    process,
+                )
+                process = path
+        if None is not self._avrdude_conf_file:
+            config_file = self._avrdude_conf_file
+        else:
+            config_file = os.path.join(
                 os.path.abspath(os.path.dirname(__file__)),
-                process,
+                'avrdude.conf'
             )
-            process = path
-        config_file = os.path.join(
-            os.path.abspath(os.path.dirname(__file__)),
-            'avrdude.conf'
-        )
         flags = []
         #get the part
         flags.append('-C' + config_file)
@@ -215,7 +245,7 @@ class Uploader(object):
         s.baudrate = 115200
         s.close()
 
-    def upload_firmware(self, port, machine, filename):
+    def upload_firmware(self, port, machine, pid, filename):
         """
         Given a port, machine name, and firmware filename, invokes avrdude to
         upload that firmware to a specific type of machine.
@@ -224,8 +254,8 @@ class Uploader(object):
         @param str machine: The machine we are uploading to
         @param str filename: The firmware we want to upload
         """
-        self._logger.info('{"event":"uploading_firmware", "port":%s, "machine":%s, "filename":%s}' % (port, machine, filename))
-        call = self.parse_avrdude_command(port, machine, filename)
+        self._logger.info('{"event":"uploading_firmware", "port":%s, "machine":%s, "pid":%s, "filename":%s}', port, machine, pid, filename)
+        call = self.parse_avrdude_command(port, machine, pid, filename)
         self.toggle_machine(port)
         try:
             try:
@@ -235,7 +265,7 @@ class Uploader(object):
             except OSError:
                 self._logger.info('{"event":"trying external avrdude"}')
                 call = self.parse_avrdude_command(
-                    port, machine, filename, local_avr=False)
+                    port, machine, pid, filename, local_avr=False)
                 output = self.run_subprocess(call, stderr=subprocess.STDOUT)
                 self._logger.debug('output=%r', output)
         except subprocess.CalledProcessError as e:

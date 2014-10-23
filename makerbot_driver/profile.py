@@ -22,6 +22,7 @@ class Profile(object):
         """
         self._log = logging.getLogger(self.__class__.__name__)
         self.path = _getprofiledir(profiledir)
+        self.name = os.path.splitext(name)[0] # name without any extension
         extension = '.json'
         if not name.endswith(extension):
             name += extension
@@ -47,11 +48,10 @@ def list_profiles(profiledir=None):
     @return A generator of profiles without their .json extensions
     """
     path = _getprofiledir(profiledir)
-    not_profiles = ['recipes']
     profile_extension = '.json'
     for f in os.listdir(path):
         root, ext = os.path.splitext(f)
-        if profile_extension == ext and root not in not_profiles:
+        if profile_extension == ext :
             yield root
 
 
@@ -66,11 +66,14 @@ def search_profiles_with_regex(regex, profiledir=None):
             os.path.abspath(os.path.dirname(__file__)),
             'profiles',
         )
-    possible_files = os.listdir(profiledir)
+    path = _getprofiledir(profiledir)
+    profile_extension = '.json'
+    possible_files = os.listdir(path)
     matches = []
     if regex is not None:
         for f in possible_files:
             match = re.search(regex, f)
-            if match:
+            root, ext = os.path.splitext(f)
+            if match and ext == profile_extension:
                 matches.append(match.group())
     return matches

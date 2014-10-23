@@ -9,9 +9,8 @@ import warnings
 from .BundleProcessor import BundleProcessor
 from .LineTransformProcessor import LineTransformProcessor
 from .CoordinateRemovalProcessor import CoordinateRemovalProcessor
-from .TemperatureProcessor import TemperatureProcessor
 from .RpmProcessor import RpmProcessor
-from .AnchorProcessor import AnchorProcessor
+from .TemperatureProcessor import GetTemperatureProcessor
 
 import makerbot_driver
 
@@ -26,10 +25,9 @@ class Skeinforge50Processor(BundleProcessor):
         self.version = '12.03.14'
         self.processors = [
             CoordinateRemovalProcessor(),
-            TemperatureProcessor(),
             RpmProcessor(),
             SkeinforgeVersionChecker(self.version),
-            AnchorProcessor(),
+            GetTemperatureProcessor(),
         ]
         self.code_map = {}
 
@@ -45,6 +43,9 @@ class SkeinforgeVersionChecker(LineTransformProcessor):
         }
 
     def _transform_check_version(self, match):
+        """Scans for an expected skeinforge version number.
+        @param match: a re.match (or similar) object
+        """
         version_numbers = match.group(1).split('.')
         compatible_numbers = self.version.split('.')
         if not version_numbers[0] == compatible_numbers[0]:

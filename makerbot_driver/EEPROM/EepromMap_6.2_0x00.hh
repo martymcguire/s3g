@@ -25,37 +25,37 @@
 /** EEPROM storage offsets for cooling fan data */
 namespace cooler_eeprom_offsets{
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B $constraints:l,0,1
 const static uint16_t ENABLE   =     0;
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B $constraints:m,0,300
 const static uint16_t SETPOINT_C  =  1;
 }
 
 /** EEPROM storage offsets for PID data */
 namespace pid_eeprom_offsets{
 //$BEGIN_ENTRY
-//$type:H $floating_point:True
+//$type:H $floating_point:True $constraints:m,0,100
 const static uint16_t P_TERM = 0;
 //$BEGIN_ENTRY
-//$type:H $floating_point:True
+//$type:H $floating_point:True $constraints:m,0,1
 const static uint16_t I_TERM = 2;
 //$BEGIN_ENTRY
-//$type:H $floating_point:True
+//$type:H $floating_point:True $constraints:m,0,100
 const static uint16_t D_TERM = 4;
 }
 
 #ifdef MODEL_REPLICATOR2
-const static float XSTEPS_PER_MM = 88.573186f;
-const static float YSTEPS_PER_MM = 88.573186f;
+const static  XSTEPS_PER_MM = 88.573186f;
+const static  YSTEPS_PER_MM = 88.573186f;
 #else
-const static float XSTEPS_PER_MM = 94.139704f;
-const static float YSTEPS_PER_MM = 94.139704f;
+const static  XSTEPS_PER_MM = 94.139704f;
+const static  YSTEPS_PER_MM = 94.139704f;
 #endif
 
-const static float ZSTEPS_PER_MM = 400;
-const static float ASTEPS_PER_MM = 96.2752018f;
-const static float BSTEPS_PER_MM = 96.2752018f;
+const static  ZSTEPS_PER_MM = 400;
+const static  ASTEPS_PER_MM = 96.2752018f;
+const static  BSTEPS_PER_MM = 96.2752018f;
 
 /** 
  * EEPROM default home axis positions in steps
@@ -107,28 +107,40 @@ namespace toolhead_eeprom_offsets {
 
 //// Feature map: 2 bytes
 //$BEGIN_ENTRY
-//$type:H 
+//$type:BB $ignore:True $constraints:a
 const static uint16_t FEATURES			= 0x0000;
 /// Backoff stop time, in ms: 2 bytes
+//$BEGIN_ENTRY
+//$type:H $ignore:True $constraints:a
 const static uint16_t BACKOFF_STOP_TIME         = 0x0002;
 /// Backoff reverse time, in ms: 2 bytes
+//$BEGIN_ENTRY
+//$type:H $ignore:True $constraints:a
 const static uint16_t BACKOFF_REVERSE_TIME      = 0x0004;
 /// Backoff forward time, in ms: 2 bytes
+//$BEGIN_ENTRY
+//$type:H $ignore:True $constraints:a
 const static uint16_t BACKOFF_FORWARD_TIME      = 0x0006;
 /// Backoff trigger time, in ms: 2 bytes
+//$BEGIN_ENTRY
+//$type:H $ignore:True $constraints:a
 const static uint16_t BACKOFF_TRIGGER_TIME      = 0x0008;
 /// Extruder heater base location: 6 bytes
 //$BEGIN_ENTRY
-//$eeprom_map:pid_eeprom_offsets
+//$eeprom_map:pid_eeprom_offsets 
 const static uint16_t EXTRUDER_PID_BASE         = 0x000A;
 /// HBP heater base location: 6 bytes data
 //$BEGIN_ENTRY
-//$eeprom_map:pid_eeprom_offsets
+//$eeprom_map:pid_eeprom_offsets $ignore:True
 const static uint16_t HBP_PID_BASE              = 0x0010;
 /// Extra features word: 2 bytes
+//$BEGIN_ENTRY
+//$type:BB $ignore:True $constraints:a
 const static uint16_t EXTRA_FEATURES            = 0x0016;
 /// Extruder identifier; defaults to 0: 1 byte 
 /// Padding: 1 byte of space
+//$BEGIN_ENTRY
+//$type:B $ignore:True $constraints:a
 const static uint16_t SLAVE_ID                  = 0x0018;
 /// Cooling fan info: 2 bytes 
 //$BEGIN_ENTRY
@@ -145,17 +157,17 @@ const static uint16_t COOLING_FAN_SETTINGS 	= 	0x001A;
 namespace eeprom_offsets {
 /// Firmware Version, low byte: 1 byte
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B $constraints:m,0,100
 const static uint16_t VERSION_LOW				= 0x0000;
 /// Firmware Version, high byte: 1 byte
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B $constraints:m,0,10
 const static uint16_t VERSION_HIGH				= 0x0001;
 /// Axis inversion flags: 1 byte.
 /// Axis N (where X=0, Y=1, etc.) is inverted if the Nth bit is set.
 /// Bit 7 is used for HoldZ OFF: 1 = off, 0 = on
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B  $constraints:a $axis_expand:True
 const static uint16_t AXIS_INVERSION			= 0x0002;
 /// Endstop inversion flags: 1 byte.
 /// The endstops for axis N (where X=0, Y=1, etc.) are considered
@@ -164,46 +176,48 @@ const static uint16_t AXIS_INVERSION			= 0x0002;
 /// that endstops are not present.
 /// Ordinary endstops (H21LOB et. al.) are inverted.
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B $constraints:a $axis_expand:True
 const static uint16_t ENDSTOP_INVERSION			= 0x0004;
 /// Digital Potentiometer Settings : 5 Bytes
 //$BEGIN_ENTRY
-//$type:BBBBB 
+//$type:BBBBB $constraints:a 
 const static uint16_t DIGI_POT_SETTINGS			= 0x0006;
 /// axis home direction (1 byte)
 //$BEGIN_ENTRY
-//$type:B
+//$type:B $constraints:a $axis_expand:True
 const static uint16_t AXIS_HOME_DIRECTION 		= 0x000C;
 /// Default locations for the axis in step counts: 5 x 32 bit = 20 bytes
 //$BEGIN_ENTRY
-//$type:iiiii 
-const static uint16_t AXIS_HOME_POSITIONS_MM	= 0x000E;
+//$type:iiiii $constraints:a
+const static uint16_t AXIS_HOME_POSITIONS_STEPS	= 0x000E;
 /// Name of this machine: 16 bytes (16 bytes extra buffer) 
 //$BEGIN_ENTRY
-//$type:s  $length:16
+//$type:s  $length:16 $constraints:a
 const static uint16_t MACHINE_NAME				= 0x0022;
 /// Tool count : 2 bytes
-//$:BEGIN_ENTRY
-//$type:B 
+//$BEGIN_ENTRY
+//$type:B  $constraints:l,1,2
 const static uint16_t TOOL_COUNT 				= 0x0042;
 /// Hardware ID. Must exactly match the USB VendorId/ProductId pair: 4 bytes
+//$BEGIN_ENTRY
+//$type:HH $ignore:True $constraints:a
 const static uint16_t VID_PID_INFO				= 0x0044;
 /// Version Number for internal releases
 //$BEGIN_ENTRY
-//$type:H 
+//$type:H  $constraints:a $ignore:True
 const static uint16_t INTERNAL_VERSION			= 0x0048;
 /// Version number to be tagged with Git Commit
 //$BEGIN_ENTRY
-//$type:H 
+//$type:H $constraints:a $ignore:True
 const static uint16_t COMMIT_VERSION			= 0x004A;
 /// HBP Present or not
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B $constraints:l,0,1
 const static uint16_t HBP_PRESENT				= 0x004C;
 /// 38 bytes padding
 /// Thermistor table 0: 128 bytes
 //$BEGIN_ENTRY
-//$eeprom_map:therm_eeprom_offsets
+//$eeprom_map:therm_eeprom_offsets $ignore:True
 const static uint16_t THERM_TABLE				= 0x0074;
 /// Padding: 8 bytes
 // Toolhead 0 data: 28 bytes (see above)
@@ -225,6 +239,8 @@ const static uint16_t LED_STRIP_SETTINGS		= 0x0140;
 //$eeprom_map:buzz_eeprom_offsets
 const static uint16_t BUZZ_SETTINGS		= 0x014A;
 ///  1 byte. 0x01 for 'never booted before' 0x00 for 'have been booted before)
+//$BEGIN_ENTRY
+//$type:B $ignore:True $constraints:l,0,1
 const static uint16_t FIRST_BOOT_FLAG  = 0x0156;
 /// 7 bytes, short int x 3 entries, 1 byte on/off
 //$BEGIN_ENTRY
@@ -232,12 +248,12 @@ const static uint16_t FIRST_BOOT_FLAG  = 0x0156;
 const static uint16_t PREHEAT_SETTINGS = 0x0158;
 /// 1 byte,  0x01 for help menus on, 0x00 for off
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B $constraints:l,0,1 
 const static uint16_t FILAMENT_HELP_TEXT_ON = 0x0160;
 /// This indicates how far out of tolerance the toolhead0 toolhead1 distance is
 /// in steps.  3 x 32 bits = 12 bytes
 //$BEGIN_ENTRY
-//$type:iii 
+//$type:iii $constraints:m,-200,35000
 const static uint16_t TOOLHEAD_OFFSET_SETTINGS = 0x0162;
 /// Acceleraton settings 22 bytes: 1 byte (on/off), 2 bytes default acceleration rate, 
 //$BEGIN_ENTRY
@@ -245,46 +261,56 @@ const static uint16_t TOOLHEAD_OFFSET_SETTINGS = 0x0162;
 const static uint16_t ACCELERATION_SETTINGS     = 0x016E;
 /// 2 bytes bot status info bytes
 //$BEGIN_ENTRY
-//$type:BB
+//$type:BB $constraints:a $ignore:True
 const static uint16_t BOT_STATUS_BYTES = 0x018A;
 /// axis lengths XYZ AB 5*32bit = 20 bytes
 //$BEGIN_ENTRY
-//$type:IIIII 
-const static uint16_t AXIS_LENGTHS				= 0x018C;
+//$type:iiiii $constraints:m,0,2147483647
+const static uint16_t AXIS_LENGTHS_STEPS		= 0x018C;
 /// total lifetime print hours, 3bytes
 //$BEGIN_ENTRY
-//$eeprom_map: build_time_offsets
+//$eeprom_map:build_time_offsets $ignore:True
 const static uint16_t TOTAL_BUILD_TIME			= 0x01A0;
 /// axis steps per mm XYZAB 5*32bit = 20 bytes
 //$BEGIN_ENTRY
-//$type:IIIII
+//$type:IIIII $constraints:a
 const static uint16_t AXIS_STEPS_PER_MM     = 0x01A4;
 /// Filament lifetime counter (in steps) 8 bytes (int64) x 2 (for 2 extruders)
+//$BEGIN_ENTRY
+//$type:qq $ignore:True $constraints:a
 const static uint16_t FILAMENT_LIFETIME     = 0x01B8;
 /// Filament trip counter (in steps) 8 bytes (int64) x 2 (for 2 extruders)
-const static uint16_t FILAMENT_TRIP     = 0x01C8;
-/// Acceleration2 settings 28 bytes: additional acceleration settings
 //$BEGIN_ENTRY
-//$eeprom_map: acceleration2_eeprom_offsets
-const static uint16_t ACCELERATION2_SETTINGS     = 0x01D8;
+//$type:qq $ignore:True $constraints:a
+const static uint16_t FILAMENT_TRIP     = 0x01C8;
 /// axis max feedrates XYZAB 5*32bit = 20 bytes
 //$BEGIN_ENTRY
-//$type:HHHHH
+//$type:HHHHH $constraints:a $ignore:True
 const static uint16_t AXIS_MAX_FEEDRATES     = 0x01F4;
 /// Hardware configuration settings 
 //$BEGIN_ENTRY
-//$type:B
+//$type:B $constraints:l,1,2 $ignore:True
 const static uint16_t BOTSTEP_TYPE      = 0x0208;
 /// temperature offset calibration: 1 byte x 3 heaters = 3 bytes
 //$BEGIN_ENTRY
-//$type:BBB
+//$type:BBB $constraints:a
 const static uint16_t HEATER_CALIBRATION = 0x020A;
 // flag that reconfigured eeprom fields have been updated
+//$BEGIN_ENTRY
+//$type:B $ignore:True $constraints:a
 const static uint16_t VERSION6_1_UPDATE_FLAG = 0x20E;
+/// axis lengths XYZ AB 5*32bit = 20 bytes
+//$BEGIN_ENTRY
+//$type:IIIII $constraints:a $ignore:True
+const static uint16_t AXIS_LENGTHS_MM			= 0x0210;
+/// Default locations for the axis in step counts: 5 x 32 bit = 20 bytes
+//$BEGIN_ENTRY
+//$type:iiiii $constraints:a $ignore:True
+const static uint16_t AXIS_HOME_POSITIONS_MM	= 0x0224;
 
 
 /// start of free space
-const static uint16_t FREE_EEPROM_STARTS        = 0x0210;
+const static uint16_t FREE_EEPROM_STARTS        = 0x0238;
 
 } 
 
@@ -308,67 +334,52 @@ const static uint16_t FREE_EEPROM_STARTS        = 0x0210;
 #define DEFAULT_JKN_ADVANCE_K                  850             // 0.00850 Multiplied by 100000
 #define DEFAULT_JKN_ADVANCE_K2                 900             // 0.00900 Multiplied by 100000
  
-#define DEFAULT_EXTRUDER_DEPRIME_STEPS_A 34
-#define DEFAULT_EXTRUDER_DEPRIME_STEPS_B 34
+#define DEFAULT_EXTRUDER_DEPRIME_STEPS_A 0
+#define DEFAULT_EXTRUDER_DEPRIME_STEPS_B 0
  
 #define DEFAULT_SLOWDOWN_FLAG 0x01
  
-#define ACCELERATION_INIT_BIT 2
+#define ACCELERATION_INIT_BIT 7
  
 namespace acceleration_eeprom_offsets{
  
     //$BEGIN_ENTRY
-    //$type:B 
+    //$type:B $constraints:l,0,1
     const static uint16_t ACCELERATION_ACTIVE         = 0x00;
     //$BEGIN_ENTRY
-    //$type:H 
+    //$type:H $constraints:a
     const static uint16_t MAX_ACCELERATION_NORMAL_MOVE  = 0x02; //uint16_t
     //$BEGIN_ENTRY
-    //$type:HHHHH 
+    //$type:HHHHH $constraints:a
     const static uint16_t MAX_ACCELERATION_AXIS     = 0x04; //5 * uint16_t
     //$BEGIN_ENTRY
-    //$type:HHHHH 
+    //$type:HHHHH $floating_point:True $constraints:a
     const static uint16_t MAX_SPEED_CHANGE          = 0x0E; //5 * uint16_t
     //$BEGIN_ENTRY
-    //$type:H 
+    //$type:H $constraints:a $ignore:True
     const static uint16_t MAX_ACCELERATION_EXTRUDER_MOVE    = 0x18; //uint16_t
     //$BEGIN_ENTRY
-    //$type:B 
+    //$type:B $constraints:a $ignore:True
     const static uint16_t DEFAULTS_FLAG         = 0x1A; //uint8_t Bit 7 == 1 is defaults written
-}
-
-namespace acceleration2_eeprom_offsets{
-    //$BEGIN_ENTRY
-    //$type:I 
-    const static uint16_t JKN_ADVANCE_K         = 0x00; //uint32_t
-    //$BEGIN_ENTRY
-    //$type:I 
-    const static uint16_t JKN_ADVANCE_K2        = 0x04; //uint32_t
-    //$BEGIN_ENTRY
-    //$type:HH 
-    const static uint16_t EXTRUDER_DEPRIME_STEPS = 0x08; //2 * uint16_t (A & B axis)
-    //$BEGIN_ENTRY
-    //$type:B 
-    const static uint16_t SLOWDOWN_FLAG         = 0x0C; //uint8_t Bit 0 == 1 is slowdown enabled
-    const static uint16_t FUTURE_USE            = 0x0E; //18 bytes for future use
-    //0x1C is end of acceleration2 settings (28 bytes long)
 }
 
 namespace build_time_offsets{
 //$BEGIN_ENTRY
-//$type:H 
+//$type:H $constraints:a
 	const static uint16_t HOURS = 0x00;
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B $constraints:m,0,60
 	const static uint16_t MINUTES = 0x02;
 }
 
 // buzz on/off settings
 namespace buzz_eeprom_offsets{
 //$BEGIN_ENTRY
-//$type:B 
+//$type:B $constraints:l,0,1
 const static uint16_t SOUND_ON = 0x00;
+//$type:B $constraints:l,0,1
 const static uint16_t ERROR_BUZZ = 0x04;
+//$type:B $constraints:l,0,1
 const static uint16_t DONE_BUZZ = 0x08;
 }
 
@@ -377,13 +388,13 @@ const static uint16_t DONE_BUZZ = 0x08;
 //Offset table for the blink entries. 
 namespace blink_eeprom_offsets{
 //$BEGIN_ENTRY
-//$type:B  
+//$type:B $constraints:m,0,10
 const static uint16_t BASIC_COLOR = 0x00;
 //$BEGIN_ENTRY
-//$type:B  
+//$type:B $constraints:l,1,0 
 const static uint16_t LED_HEAT_ON	= 0x02;
 //$BEGIN_ENTRY
-//$type:BBB  
+//$type:BBB $constraints:a 
 const static uint16_t CUSTOM_COLOR 	= 0x04;
 }
 
@@ -391,30 +402,34 @@ const static uint16_t CUSTOM_COLOR 	= 0x04;
 /** thermal EERROM offset values and on/off settings for each heater */
 namespace therm_eeprom_offsets{
 //$BEGIN_ENTRY
-//$type:i  
+//$type:i $constraints:a
 const static uint16_t THERM_R0                   = 0x00;
 //$BEGIN_ENTRY
-//$type:i  
+//$type:i $constraints:a
 const static uint16_t THERM_T0                  = 0x04;
 //$BEGIN_ENTRY
-//$type:i  
+//$type:i $constraints:a
 const static uint16_t THERM_BETA                = 0x08;
 /// this is legacy storage for alternate thermistor tables
+//$BEGIN_ENTRY
+//$type:B $mult:40 $ignore:True $constraints:a
 const static uint16_t THERM_DATA                 = 0x10;
 }
 
 /** preheat EERROM offset values and on/off settings for each heater */
 namespace preheat_eeprom_offsets{
 //$BEGIN_ENTRY
-//$type:H  
+//$type:H $constraints:m,0,300 
 const static uint16_t PREHEAT_RIGHT_TEMP                = 0x00;
 //$BEGIN_ENTRY
-//$type:H  
+//$type:H $constraints:m,0,300
 const static uint16_t PREHEAT_LEFT_TEMP                = 0x02;
 //$BEGIN_ENTRY
-//$type:H  
+//$type:H $constraints:m,0,200 
 const static uint16_t PREHEAT_PLATFORM_TEMP           = 0x04;
 // this byte is firmware local to note if preheat is active 
+//$BEGIN_ENTRY
+//$type:B $ignore:True $constraints:a 
 const static uint16_t PREHEAT_ON_OFF             = 0x06;
 }
 
@@ -430,8 +445,12 @@ enum HeatMask{
 
 namespace eeprom_info {
 
-//$BEGIN_ENTRY
-//
+//$BEGIN_INFO_ENTRY
+//$name:software_variant $value:0x00
+
+//$BEGIN_INFO_ENTRY
+//$name:dependent_toolhead_map $value:None
+
 const static uint16_t EEPROM_SIZE = 0x1000;
 const int MAX_MACHINE_NAME_LEN = 16;
 
@@ -490,7 +509,7 @@ enum {
 }
 
 namespace eeprom {
-  const static uint8_t VERSION6_1_FLAG = 41;
+  const static uint8_t VERSION6_1_FLAG = 53;
   void fullResetEEPROM();
   void eepromResetv61(); 
 	void factoryResetEEPROM();

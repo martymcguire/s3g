@@ -24,11 +24,15 @@ import optparse
 
 class eeprom_analyzer(object):
 
-    def __init__(self, input_fh, output_fh):
+    def __init__(self, input_fh, output_fh, include_ignore=False):
+        self.include_ignore = include_ignore
+        self.ignore_flag = 'ignore'
         self.output_fh = output_fh
         self.input_fh = input_fh
         self.eeprom_map = {}  # Contains entries and offsets
         self.eeprom_data = {}  # Contains data about the eeprom (i.e. length)
+        self.eeprom_info = 'eeprom_info'
+        self.info_marker = '$BEGIN_INFO_ENTRY'
 
     def parse_file(self):
         self.eeprom_map = {}
@@ -38,37 +42,45 @@ class eeprom_analyzer(object):
                 namespace = {}
                 try:
                     while True:
-                        self.find_next_entry()
+                        data = {}
+                        marker = self.find_next_entry()
                         #At this point we are on a line thats supposed to have variables
                         variables = self.parse_out_variables(
                             self.input_fh.readline())
                         #AT this point we are at the variable declaration in the .hh file
-                        (name, location) = self.parse_out_name_and_location(
-                            self.input_fh.readline())
                         #Begin creating the dict for this entry
-                        v = {
-                            'offset': location,
-                        }
                         #Parse all variables and add them to the dict
+                        variable_dict = {}
                         for variable in variables:
                             variable = variable.split(':')
-                            v[variable[0]] = variable[1]
-                        namespace[name] = v
+                            variable_dict[variable[0]] = variable[1]
+                        if self.info_marker in marker:
+                            name = variable_dict['name']
+                            del(variable_dict['name'])
+                        else:
+                            (name, location) = self.parse_out_name_and_location(
+                                self.input_fh.readline())
+                            data['offset'] = location
+                        data.update(variable_dict)
+                        if self.ignore_flag in data and not self.include_ignore:
+                            pass
+                        else:
+                            namespace[name] = data
                 except EndOfNamespaceError:
-                    if namespace_name == "eeprom_info":
+                    if namespace_name == self.eeprom_info:
                         self.eeprom_data = namespace
                     else:
                         self.eeprom_map[namespace_name] = namespace
         except EndOfEepromError:
-            collated_map = {'eeprom_data': self.eeprom_data, 'eeprom_map':
+            collated_map = {'eeprom_info': self.eeprom_data, 'eeprom_map':
                             self.collate_maps(self.eeprom_map['eeprom_offsets'])}
             self.dump_json(collated_map)
 
     def find_next_entry(self):
         namespace_end = '}'
-        entry_line = '//$BEGIN_ENTRY'
+        entry_line = re.compile('[\s]*\/\/\$BEGIN_ENTRY|[\s]*\/\/\$BEGIN_INFO_ENTRY')
         line = self.input_fh.readline()
-        while entry_line not in line:
+        while not re.match(entry_line, line):
             if namespace_end in line:
                 raise EndOfNamespaceError
             line = self.input_fh.readline()
@@ -117,16 +129,14 @@ class eeprom_analyzer(object):
         @param str line: the line we want information from
         @return tuple: Information in the form of (name, location)
         """
+        before_semi_regex = "(.*?);"
+        match = re.search(before_semi_regex, line)
+        substring = match.group(1)
         for w in ['const', 'static', 'uint16_t']:
-            line = line.replace(w, '')
-        for s in ["\r", "\n", ";"]:
-            line = line.rstrip(s)
-        line = line.replace('\t', '')
-        line = line.replace(" ", "")
-        if ';' in line:
-            m = re.search("[^;]*;", line)
-            line = m.group()
-        (name, location) = line.split("=")
+            substring = substring.replace(w, '')
+        substring = substring.replace('\t', '')
+        substring = substring.replace(" ", "")
+        (name, location) = substring.split("=")
         return name, location
 
     def parse_out_variables(self, line):
@@ -134,8 +144,10 @@ class eeprom_analyzer(object):
         for s in ['\n', '\r', '\t', ]:
             line = line.rstrip(s)
         line = line.lstrip('//')
-        line = line.replace(' ', '')
         parts = line.split('$')
+        for i in range(len(parts)):
+            parts[i] = parts[i].lstrip(' ')
+            parts[i] = parts[i].rstrip(' ')
         #Dont return the first, since its empty
         return parts[1:]
 
@@ -144,6 +156,11 @@ class eeprom_analyzer(object):
         self.output_fh.write(output)
 
     def collate_maps(self, the_map):
+        """
+        Iterates over all entries in a given map and, if necessary,
+        inserts a submap where needed.  All entries' submaps point to 
+        a namespace of the same name.
+        """
         collated_map = the_map
         for key in the_map:
             if 'eeprom_map' in the_map[key]:
@@ -160,7 +177,11 @@ if __name__ == '__main__':
     parser.add_option('-o', '--output_fh', dest='output_fh',
                       help='where you would like to save the map to',
                       )
+    parser.add_option('--include-ignore', dest='include_ignore',
+                        action='store_true', help='include values intended to be ignored',
+                        default=False
+    )
     (options, args) = parser.parse_args()
     ea = eeprom_analyzer(
-        open(options.input_fh), open(options.output_fh, 'w'))
+        open(options.input_fh), open(options.output_fh, 'w'), include_ignore=options.include_ignore)
     ea.parse_file()

@@ -48,6 +48,7 @@ host_action_command_dict = {
     'BUILD_START_NOTIFICATION': 153,
     'BUILD_END_NOTIFICATION': 154,
     'QUEUE_EXTENDED_POINT_ACCELERATED': 155,
+    'X3G_VERSION': 157,
 }
 
 # TODO: Change name to tool
@@ -114,3 +115,4 @@ timeout_length = 1.0
 s3g_version = 100
 max_tool_index = 127
 vid_pid = [0x23C1, 0xD314]
+valid_toolhead_counts = [1, 2]

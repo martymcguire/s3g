@@ -1,11 +1,12 @@
 import os
 import sys
-lib_path = os.path.abspath('../')
-sys.path.append(lib_path)
+lib_path = os.path.abspath('./')
+sys.path.insert(0, lib_path)
 
 import unittest
 import io
 import makerbot_driver
+import threading
 
 
 class AbstractWriterTests(unittest.TestCase):
@@ -13,7 +14,8 @@ class AbstractWriterTests(unittest.TestCase):
     Emulate a machine
     """
     def setUp(self):
-        self.w = makerbot_driver.Writer.AbstractWriter("stream")
+        condition = threading.Condition()
+        self.w = makerbot_driver.Writer.AbstractWriter("stream", condition)
 
     def test_not_implemented_raises(self):
         #none of these should be implemented in the base class

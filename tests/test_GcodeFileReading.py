@@ -1,7 +1,7 @@
 import os
 import sys
-lib_path = os.path.abspath('../')
-sys.path.append(lib_path)
+lib_path = os.path.abspath('./')
+sys.path.insert(0, lib_path)
 
 try:
     import unittest2 as unittest
@@ -10,9 +10,10 @@ except ImportError:
 import mock
 
 import tempfile
+import threading
+import warnings
 
 import makerbot_driver
-import warnings
 
 
 class TOMReading(unittest.TestCase):
@@ -20,11 +21,19 @@ class TOMReading(unittest.TestCase):
         self.p = makerbot_driver.Gcode.GcodeParser()
         self.p.state = makerbot_driver.Gcode.LegacyGcodeStates()
         self.p.state.values['build_name'] = 'test'
-        self.p.state.profile = makerbot_driver.Profile('TOMStepstruder')
+        self.p.state.profile = makerbot_driver.Profile('TOMStepstruderSingle')
+        start_pos = self.p.state.profile.values['print_start_sequence']['start_position']
+        start_position = {
+            'START_X' : start_pos['start_x'],
+            'START_Y' : start_pos['start_y'],
+            'START_Z' : start_pos['start_z']
+        }
+        self.p.environment.update(start_position)
         self.s3g = makerbot_driver.s3g()
         with tempfile.NamedTemporaryFile(suffix='.gcode', delete=True) as f:
             path = f.name
-        self.s3g.writer = makerbot_driver.Writer.FileWriter(open(path, 'wb'))
+        condition = threading.Condition()
+        self.s3g.writer = makerbot_driver.Writer.FileWriter(open(path, 'wb'), condition)
         self.p.s3g = self.s3g
 
     def tearDown(self):
@@ -49,6 +58,13 @@ class SingleHeadReading(unittest.TestCase):
         self.s = makerbot_driver.Gcode.GcodeStates()
         self.s.values['build_name'] = 'test'
         self.profile = makerbot_driver.Profile('ReplicatorSingle')
+        start_pos = self.profile.values['print_start_sequence']['start_position']
+        start_position = {
+            'START_X' : start_pos['start_x'],
+            'START_Y' : start_pos['start_y'],
+            'START_Z' : start_pos['start_z']
+        }
+        self.p.environment.update(start_position)
         self.s.profile = self.profile
         self.p.state = self.s
         self.s3g = makerbot_driver.s3g()
@@ -56,7 +72,8 @@ class SingleHeadReading(unittest.TestCase):
             pass
         input_path = input_file.name
         os.unlink(input_path)
-        self.writer = makerbot_driver.Writer.FileWriter(open(input_path, 'wb'))
+        condition = threading.Condition()
+        self.writer = makerbot_driver.Writer.FileWriter(open(input_path, 'wb'), condition)
         self.s3g.writer = self.writer
         self.p.s3g = self.s3g
 
@@ -87,6 +104,7 @@ class SingleHeadReading(unittest.TestCase):
             'skeinforge_single_extrusion_20mm_box.gcode'
         )
         the_file = process_file_with_pro(the_file, 'Skeinforge50Processor')
+        the_file = process_file_with_pro(the_file, 'SetTemperatureProcessor')
         execute_file(the_file, self.p)
 
     def test_single_head_skeinforge_single_snake(self):
@@ -98,6 +116,7 @@ class SingleHeadReading(unittest.TestCase):
             'skeinforge_single_extrusion_snake.gcode'
         )
         the_file = process_file_with_pro(the_file, 'Skeinforge50Processor')
+        the_file = process_file_with_pro(the_file, 'SetTemperatureProcessor')
         execute_file(the_file, self.p)
 
     def test_single_head_miracle_grue(self):
@@ -118,6 +137,13 @@ class DualHeadReading(unittest.TestCase):
         self.s = makerbot_driver.Gcode.GcodeStates()
         self.s.values['build_name'] = 'test'
         self.profile = makerbot_driver.Profile('ReplicatorDual')
+        start_pos = self.profile.values['print_start_sequence']['start_position']
+        start_position = {
+            'START_X' : start_pos['start_x'],
+            'START_Y' : start_pos['start_y'],
+            'START_Z' : start_pos['start_z']
+        }
+        self.p.environment.update(start_position)
         self.s.profile = self.profile
         self.p.state = self.s
         self.s3g = makerbot_driver.s3g()
@@ -125,7 +151,8 @@ class DualHeadReading(unittest.TestCase):
             pass
         input_path = input_file.name
         os.unlink(input_path)
-        self.writer = makerbot_driver.Writer.FileWriter(open(input_path, 'wb'))
+        condition = threading.Condition()
+        self.writer = makerbot_driver.Writer.FileWriter(open(input_path, 'wb'), condition)
         self.s3g.writer = self.writer
         self.p.s3g = self.s3g
 
@@ -144,6 +171,7 @@ class DualHeadReading(unittest.TestCase):
             'gcode_samples',
             'skeinforge_dual_extrusion_hilbert_cube.gcode')
         the_file = process_file_with_pro(the_file, 'Skeinforge50Processor')
+        the_file = process_file_with_pro(the_file, 'SetTemperatureProcessor')
         the_file = process_file_with_pro(
             the_file, 'CoordinateRemovalProcessor')
         execute_file(the_file, self.p)
@@ -157,6 +185,7 @@ class DualHeadReading(unittest.TestCase):
             'skeinforge_single_extrusion_20mm_box.gcode'
         )
         the_file = process_file_with_pro(the_file, 'Skeinforge50Processor')
+        the_file = process_file_with_pro(the_file, 'SetTemperatureProcessor')
         execute_file(the_file, self.p)
 
     def test_single_head_skeinforge_single_snake(self):
@@ -167,6 +196,7 @@ class DualHeadReading(unittest.TestCase):
             'gcode_samples',
             'skeinforge_single_extrusion_snake.gcode')
         the_file = process_file_with_pro(the_file, 'Skeinforge50Processor')
+        the_file = process_file_with_pro(the_file, 'SetTemperatureProcessor')
         execute_file(the_file, self.p)
 
     def test_single_head_miracle_grue(self):

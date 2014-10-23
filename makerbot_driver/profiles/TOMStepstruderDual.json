@@ -1,5 +1,5 @@
 {
-    "type": "Thing-O-Matic with Stepstruder Mk7",
+    "type": "Thing-O-Matic Dual, Stepstruder Mk6+",
     "machinenames": [
         "Thing-O-Matic",
         "TOM"
@@ -23,6 +23,10 @@
         "A": {
             "max_feedrate": 1600,
             "steps_per_mm": -50.23547880690741
+        },
+	    "B": {
+            "max_feedrate": 1600,
+            "steps_per_mm": -50.23547880690741
         }
     },
     "tools": {
@@ -30,6 +34,11 @@
             "name": "Mk7 Right",
             "model": "Mk7",
             "stepper_axis": "A"
+        },
+ 	    "1": {
+            "name": "Mk7 Left",
+            "model": "Mk7",
+            "stepper_axis": "B"
         }
     },
     "heated_platforms": {
@@ -38,8 +47,8 @@
         }
     },
     "baudrate": 115200,
-    "VID": 403,
-    "PID": 6001,
+    "VID": [1027, 9025],
+    "PID": [24577, 16],
     "print_start_sequence": {
         "begin_print": {
             "tom_begin": []
@@ -55,8 +64,11 @@
         },
         "start_position": {
             "tom_start_position": [
-                "G1 X25 Y-60 Z10 F3300.0 (move to waiting position)"
-            ]
+                "G1 X#START_X Y#START_Y Z#START_Z F3300.0 (move to waiting position)"
+            ],
+            "start_x" : 25,
+            "start_y" : -60,
+            "start_z" : 10
         },
         "heat_platform": {
             "no_heat": [],
@@ -98,5 +110,8 @@
         }
     },
     "find_axis_maximum_timeout": 20,
-    "find_axis_minimum_timeout": 20
+    "find_axis_minimum_timeout": 20,
+    "dualstrusion_retract_distance_mm": "NULL",
+    "dualstrusion_squirt_reduce_mm": "NULL",
+    "use_legacy_parser": true
 }

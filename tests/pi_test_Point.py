@@ -1,7 +1,7 @@
 import os
 import sys
-lib_path = os.path.abspath('../')
-sys.path.append(lib_path)
+lib_path = os.path.abspath('./')
+sys.path.insert(0, lib_path)
 
 import unittest
 import io
@@ -58,6 +58,13 @@ class TestPoint(unittest.TestCase):
         }
         p.SetPoint(codes)
         self.assertEqual(expected_position, p.ToList())
+
+    def test_copy(self):
+        point = makerbot_driver.Gcode.Point()
+        copy_point = point.copy()
+        self.assertEqual(point.ToList(), copy_point.ToList())
+        copy_point.X = 50
+        self.assertNotEqual(point.ToList(), copy_point.ToList())
 
 if __name__ == '__main__':
     unittest.main()

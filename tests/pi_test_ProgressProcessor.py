@@ -1,8 +1,8 @@
 import os
 import sys
 import re
-lib_path = os.path.abspath('../')
-sys.path.append(lib_path)
+lib_path = os.path.abspath('./')
+sys.path.insert(0, lib_path)
 
 import unittest
 import tempfile
@@ -18,20 +18,6 @@ class TestProgressProcessor(unittest.TestCase):
 
     def tearDown(self):
         self.p = None
-
-    def test_get_percent(self):
-        cases = [
-            [0, 100, 0],
-            [50, 100, 50],
-            [1, 2, 50],
-            [1, 3, 33],
-            [2, 3, 66],
-            [2, 5, 40],
-            [5, 5, 100],
-            [1, 5, 20],
-        ]
-        for case in cases:
-            self.assertEqual(case[2], self.p.get_percent(case[0], case[1]))
 
     def test_create_progress_update(self):
         for i in range(100):

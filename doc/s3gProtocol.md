@@ -785,8 +785,38 @@ Response
 
     uint16_t Firmware Version
     uint16_t Internal Version
+    uint8_t Software Variant, see software variant table for valid IDs
+    uint8_t Reserved for future use
     uint16_t Reserved for future use
-    uint16_t Reserved for future use
+
+Sofware Variant IDs are as follows
+<table>
+<tr>
+  <td>0x00</td>
+  <td>unknown</td>
+</tr>
+<tr>
+  <td>0x01</td>
+  <td>MBI Official</td>
+</tr>
+<tr>
+  <td>0x02-0x7F</td>
+  <td>reserved</td>
+</tr>
+<tr>
+  <td>0x80</td>
+  <td>Sailfish</td>
+</tr>
+<tr>
+  <td>0x81-0xBF</td>
+  <td>unassigned variants</td>
+</tr>
+<tr>
+  <td>0xC0-0xFF</td>
+  <td>reserved</td>
+</tr>
+</table>
+
 
 # Host Buffered Commands
 
@@ -1111,7 +1141,7 @@ If the "last message in group" is not sent, the message will never be displayed
 
 if the "clear message" flag is 0, the message buffer will be cleared and any existing timeout out will be cleared.
 
-If the "wait on button" flag is 1, the message screen will clear after a users presses the center button. The timeout field is still relevant if the button press is never received.
+If the "wait on button" flag is 1, the message screen will _not_ clear after a users presses the center button.  The display will linger until something else is drawn. The timeout field is still relevant if the button press is never received.
 
 Text will auto-wrap at end of line. \n is recognized as new line start. \r is ignored.
 
@@ -1225,6 +1255,54 @@ Payload (1 byte)
 
 Response (0 bytes)
 
+## 155 - Queue extended point x3g
+This queues an absolute point to move to.
+
+Payload
+
+    int32: X coordinate, in steps
+    int32: Y coordinate, in steps
+    int32: Z coordinate, in steps
+    int32: A coordinate, in steps
+    int32: B coordinate, in steps
+    uint32: DDA Feedrate, in steps/s
+    uint8: Axes bitfield to specify which axes are relative. Any axis with a bit set should make a relative movement.
+    float (single precision, 32 bit): mm distance for this move.  normal of XYZ if any of these axes are active, and AB for extruder only moves
+    uint16: feedrate in mm/s, multiplied by 64 to assist fixed point calculation on the bot   
+
+Response (0 bytes)
+
+## 157 - Stream Version
+Used at the start of a build to tell the bot the active x3g version.
+The bot can use this information to provide feedback on compatibility to the user. 
+
+Payload
+
+    uint8: x3g version high byte
+    uint8: x3g version low byte
+    uint8: not implemented
+    uint32: not implemented
+    uint16: bot type: PID for the intended bot is sent 
+<table>
+<tr>
+ <th>Bot Type</th>
+ <th>PID</th>
+</tr>
+<tr>
+ <td>Replicator</td>
+ <td>0xD314</td>
+</tr>
+<tr>
+ <td>Repliator 2</td>
+ <td>0xB015</td>
+</tr>
+</table>
+    uint16: not implemented
+    uint32: not implemented
+    uint32: not implemented
+    uint8: not implemented
+
+Response (0 bytes)
 
 # Tool Query Commands
 

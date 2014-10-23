@@ -1,7 +1,7 @@
 import os
 import sys
-lib_path = os.path.abspath('../')
-sys.path.append(lib_path)
+lib_path = os.path.abspath('./')
+sys.path.insert(0, lib_path)
 
 import unittest
 
@@ -18,32 +18,29 @@ class TestRemoveProgressProcessor(unittest.TestCase):
 
     def test_regexs(self):
         cases = [
-            ['M73\n', ['']],
-            ['M73', ['']],
-            ['m73', ['']],
+            ['M73\n', []],
+            ['M73', []],
+            ['m73', []],
             ['(M73', ['(M73']],
             [';M73', [';M73']],
-            ['       M73', ['']],
-            ['(comment) M73', ['']],
-            ['(comment) (comment) M73', ['']],
+            ['       M73', []],
+            ['(comment) M73', ['(comment) M73']],
             ['(comment) ; M73', ['(comment) ; M73']],
-            ['M136\n', ['']],
-            ['M136', ['']],
-            ['m136', ['']],
-            ['       M136', ['']],
+            ['M136\n', []],
+            ['M136', []],
+            ['m136', []],
+            ['       M136', []],
             ['(M136', ['(M136']],
             [';M136', [';M136']],
-            ['(comment) M136', ['']],
-            ['(comment) (comment) M136', ['']],
+            ['(comment) M136', ['(comment) M136']],
             ['(comment) ; M136', ['(comment) ; M136']],
-            ['M137\n', ['']],
-            ['M137', ['']],
-            ['m137', ['']],
-            ['       M137', ['']],
+            ['M137\n', []],
+            ['M137', []],
+            ['m137', []],
+            ['       M137', []],
             ['(M137', ['(M137']],
             [';M137', [';M137']],
-            ['(comment) M137', ['']],
-            ['(comment) (comment) M137', ['']],
+            ['(comment) M137', ['(comment) M137']],
             ['(comment) ; M137', ['(comment) ; M137']],
             ['G1 X0 Y0', ['G1 X0 Y0']],
             ['G92 X0 Y0', ['G92 X0 Y0']],

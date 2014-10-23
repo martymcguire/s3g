@@ -1,13 +1,12 @@
 import os
 import sys
-lib_path = os.path.abspath('../')
-sys.path.append(lib_path)
+lib_path = os.path.abspath('./')
+sys.path.insert(0, lib_path)
 
 import unittest
 import threading
 import time
 import mock
-
 import makerbot_driver
 
 
@@ -103,7 +102,8 @@ class TestBundleProcessorCallbacks(unittest.TestCase):
         self.bp.processors = [
             makerbot_driver.GcodeProcessors.RpmProcessor(),
             makerbot_driver.GcodeProcessors.SingletonTProcessor(),
-            makerbot_driver.GcodeProcessors.TemperatureProcessor(),
+            makerbot_driver.GcodeProcessors.SetTemperatureProcessor(),
+            makerbot_driver.GcodeProcessors.GetTemperatureProcessor(),
         ]
         t.start()
         self.bp.process_gcode(lines, callback=test_callback)
@@ -131,7 +131,8 @@ class TestBundleProcessorCallbacks(unittest.TestCase):
         self.bp.processors = [
             makerbot_driver.GcodeProcessors.RpmProcessor(),
             makerbot_driver.GcodeProcessors.SingletonTProcessor(),
-            makerbot_driver.GcodeProcessors.TemperatureProcessor(),
+            makerbot_driver.GcodeProcessors.SetTemperatureProcessor(),
+            makerbot_driver.GcodeProcessors.GetTemperatureProcessor(),
         ]
         t.start()
         self.bp.do_progress = False
@@ -162,7 +163,8 @@ class TestBundleProcessorCallbacks(unittest.TestCase):
         self.bp.processors = [
             makerbot_driver.GcodeProcessors.RpmProcessor(),
             makerbot_driver.GcodeProcessors.SingletonTProcessor(),
-            makerbot_driver.GcodeProcessors.TemperatureProcessor(),
+            makerbot_driver.GcodeProcessors.SetTemperatureProcessor(),
+            makerbot_driver.GcodeProcessors.GetTemperatureProcessor(),
         ]
         t.start()
         try:

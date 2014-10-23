@@ -21,10 +21,6 @@ class BundleProcessor(LineTransformProcessor):
         for processor in self.processors:
             if processor.is_bundleable:
                 self.code_map.update(processor.code_map)
-                for func in dir(processor):
-                    new_function = getattr(processor, func)
-                    if inspect.isfunction(new_function) and re.match(transform_code, func):
-                        setattr(self, func, new_function)
 
     def process_gcode(self, gcodes, callback=None):
         self.collate_codemaps()
@@ -42,10 +38,10 @@ class BundleProcessor(LineTransformProcessor):
                 output, progress_callback)
         return output
 
-    def set_external_stop(self):
-        super(BundleProcessor, self).set_external_stop()
+    def set_external_stop(self, value=True):
+        super(BundleProcessor, self).set_external_stop(value)
         with self._condition:
-            self.progress_processor.set_external_stop()
+            self.progress_processor.set_external_stop(value)
 
     def new_callback(self, percent):
         """

@@ -1,7 +1,7 @@
 import os
 import sys
-lib_path = os.path.abspath('../')
-sys.path.append(lib_path)
+lib_path = os.path.abspath('./')
+sys.path.insert(0, lib_path)
 
 import unittest
 import tempfile
@@ -20,29 +20,26 @@ class RpmProcessor(unittest.TestCase):
 
     def test_regexs(self):
         cases = [
-            ["M101", [""]],
-            ["m101", [""]],
+            ["M101", []],
+            ["m101", []],
             [";M101", [";M101"]],
             ["(M101", ["(M101"]],
-            ['       M101', ['']],
-            ['(comment) M101', ['']],
-            ['(comment) (comment) M101', ['']],
+            ['       M101', []],
+            ['(comment) M101', ['(comment) M101']],
             ['(comment) ; M101', ['(comment) ; M101']],
-            ["M102", [""]],
-            ["m102", [""]],
+            ["M102", []],
+            ["m102", []],
             [";M102", [";M102"]],
-            ['       M102', ['']],
+            ['       M102', []],
             ["(M102", ["(M102"]],
-            ['(comment) M102', ['']],
-            ['(comment) (comment) M102', ['']],
+            ['(comment) M102', ['(comment) M102']],
             ['(comment) ; M102', ['(comment) ; M102']],
-            ["M103", [""]],
-            ["m103", [""]],
+            ["M103", []],
+            ["m103", []],
             [";M103", [";M103"]],
             ["(M103", ["(M103"]],
-            ['       M103', ['']],
-            ['(comment) M103', ['']],
-            ['(comment) (comment) M103', ['']],
+            ['       M103', []],
+            ['(comment) M103', ['(comment) M103']],
             ['(comment) ; M103', ['(comment) ; M103']],
             ["G1 X0 Y0", ["G1 X0 Y0"]],
             ["G92 X0 Y0", ["G92 X0 Y0"]],
@@ -59,8 +56,7 @@ class RpmProcessor(unittest.TestCase):
             'M108 T0\n': 'M135 T0\n',
             'M108 T0 R25.1\n': 'M135 T0\n',
             'M108 T0 R25.1;superCOMMENT\n': 'M135 T0; superCOMMENT\n',
-            'M108 (heres a comment) T0\n': 'M135 T0; heres a comment\n',
-            'M108 (heres a comment) T0;heres another comment\n': 'M135 T0; heres another commentheres a comment\n',
+            'M108 T0 (heres a comment) T0\n': 'M135 T0; heres a comment) T0\n',
         }
         for key in input_output_dict:
             match_obj = re.search('.*', key)
